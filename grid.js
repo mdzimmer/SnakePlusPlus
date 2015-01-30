@@ -1,3 +1,4 @@
+'use strict';
 function initialiseGrid (size, rows, cols) {
 	var grid = {};
 	grid.array = [];
@@ -17,6 +18,10 @@ function initialiseGrid (size, rows, cols) {
 		var randomCol = Math.floor(Math.random() * cols);
 		this.add(randomRow, randomCol, member);
 	};
+	grid.addRandomBot = function addRandomBot (member) {
+		var randomRow = Math.floor(Math.random() * rows);
+		this.add(randomRow, this.cols - 1, member);
+	};
 	grid.remove = function remove (row, col, member) {
 		var element = this.array[row][col];
 		for (var i = 0; i < element.length; ++i) {
@@ -26,6 +31,39 @@ function initialiseGrid (size, rows, cols) {
 			}
 		}
 		throw new Error('remove() failed to find element');
+	};
+	grid.getFood = function getFood (row, col) {
+		var element = this.array[row][col];
+		for (var i = 0; i < element.length; ++i) {
+			if (element[i].name == 'food') {
+				element[i].destroy(false);
+				element.splice(i, 1);
+				return true;
+			}
+		}
+		return false;
+	};
+	grid.customUpdate = function customUpdate (_grid) {
+		for (var row = 0; row < this.rows; ++row) {
+			for (var col = 0; col < this.cols; ++col) {
+				var element = this.array[row][col];
+				for (var i = 0; i < element.length; ++i) {
+					if (element[i].hasOwnProperty('customUpdate')) {
+						element[i].customUpdate(_grid);
+					}
+				}
+			}
+		}
+	};
+	grid.clear = function clear () {
+		for (var row = 0; row < this.rows; ++row) {
+			for (var col = 0; col < this.cols; ++col) {
+				var element = this.array[row][col];
+				for (var i = 0; i < element.length; ++i) {
+					element[i].destroy();
+				}
+			}
+		}
 	};
 	for (var i = 0; i < rows; ++i) {
 		var col = [];

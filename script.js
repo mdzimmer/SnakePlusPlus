@@ -1,21 +1,22 @@
+'use strict';
 var game = new Phaser.Game(800, 800, Phaser.AUTO, 'canvas', { preload: preload, create: create, update: update });
 var cursors;
 var gridSize = 20;
 var numRows = 40;
 var numCols = 40;
 var TICKTIME = 100; // number of miliseconds between ticks of action
+var FOODCHANCE = 20; // chance of food spawning per action
 var grid;
 var snakeHead;
 var snakeTail;
-var foods = [];
-var enemies = [];
 var DIRECTIONS = {
 	UP: 0,
 	RIGHT: 1,
 	DOWN: 2,
 	LEFT: 3
 };
-var dir = DIRECTIONS.RIGHT;
+var dir;
+var ctrl;
 
 function preload () {
 	game.load.image('snakeHead', 'assets/snakeHead.png');
@@ -27,51 +28,52 @@ function preload () {
 function create () {
 	// background color
 	game.stage.backgroundColor = '#FFFFCC';
-	// grid
-	grid = initialiseGrid(gridSize, numRows, numCols);
-	// snake
-	snakeHead = initialiseSnake();
-	grid.add(0, 0, snakeHead);
-	/*
-	// test food
-	var newFood = new food();
-	foods.push(newFood);
-	grid.addRandom(newFood);
-	*/
 	// input
 	cursors = game.input.keyboard.createCursorKeys();
 	// game action
 	game.time.events.loop(TICKTIME, action, this);
+	// initialise members
+	init();
 }
 
 function update () {
 	// input
 	if (cursors.right.isDown && dir != DIRECTIONS.LEFT) {
-		dir = DIRECTIONS.RIGHT;
+		ctrl = DIRECTIONS.RIGHT;
 	}
 	if (cursors.left.isDown && dir != DIRECTIONS.RIGHT) {
-		dir = DIRECTIONS.LEFT;
+		ctrl = DIRECTIONS.LEFT;
 	}
-	if (cursors.up.isDown && dir != DIRECTIONS.UP) {
-		dir = DIRECTIONS.UP;
+	if (cursors.up.isDown && dir != DIRECTIONS.DOWN) {
+		ctrl = DIRECTIONS.UP;
 	}
-	if (cursors.down.isDown && dir != DIRECTIONS.DOWN) {
-		dir = DIRECTIONS.DOWN;
+	if (cursors.down.isDown && dir != DIRECTIONS.UP) {
+		ctrl = DIRECTIONS.DOWN;
 	}
 }
 
 function action () {
-	// input
+	// add new food
+	if (Math.random() * 100 <= FOODCHANCE) {
+		grid.addRandomBot(new food());
+	}
+	// move grid elements
+	grid.customUpdate(grid);
+	// next space
 	var newRow = snakeHead.row;
 	var newCol = snakeHead.col;
-	if (dir == DIRECTIONS.UP) {
+	if (ctrl == DIRECTIONS.UP) {
 		newCol--;
-	} else if (dir == DIRECTIONS.RIGHT) {
+		dir = DIRECTIONS.UP;
+	} else if (ctrl == DIRECTIONS.RIGHT) {
 		newRow++;
-	} else if (dir == DIRECTIONS.DOWN) {
+		dir = DIRECTIONS.RIGHT;
+	} else if (ctrl == DIRECTIONS.DOWN) {
 		newCol++;
-	} else if (dir == DIRECTIONS.LEFT) {
+		dir = DIRECTIONS.DOWN;
+	} else if (ctrl == DIRECTIONS.LEFT) {
 		newRow--;
+		dir = DIRECTIONS.LEFT;
 	}
 	// test bounds
 	if (newRow >= numRows || newRow < 0 || newCol >= numCols || newCol < 0) {
@@ -79,27 +81,30 @@ function action () {
 		return;
 	}
 	// test collisions
-	// TODO: test collisions
+	if (grid.getFood(newRow, newCol)) {
+		snakeHead.addTail();
+	}
 	// move
 	snakeHead.moveTo(newRow, newCol, grid);
 }
 
-function restart () {
+function init () {
 	// grid
 	grid = initialiseGrid(gridSize, numRows, numCols);
 	// snake
-	snakeHead.customDestroy();
-	snakeHead = initialiseSnake();
+	snakeHead = snake(true);
 	grid.add(0, 0, snakeHead);
-	// food
-	food = [];
-	// enemies
-	enemies = [];
 	// direction
 	dir = DIRECTIONS.RIGHT;
+	// grid.addRandomBot(new food());
 }
 
-
+function restart () {
+	// grid
+	grid.clear();
+	// initialise new game
+	init();
+}
 
 
 
