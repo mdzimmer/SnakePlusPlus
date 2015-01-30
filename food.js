@@ -5,7 +5,6 @@ function food () {
 	newFood.customUpdate = function customUpdate (grid) {
 		var newCol = this.col - 1;
 		if (newCol < 0) {
-			// newCol = grid.cols - 1;
 			grid.remove(this.row, this.col, this);
 			this.destroy();
 		} else {

@@ -6,6 +6,7 @@ var numRows = 40;
 var numCols = 40;
 var TICKTIME = 100; // number of miliseconds between ticks of action
 var FOODCHANCE = 20; // chance of food spawning per action
+var ENEMYCHANCE = 20; // chance of enemy spawning per action
 var grid;
 var snakeHead;
 var snakeTail;
@@ -17,6 +18,11 @@ var DIRECTIONS = {
 };
 var dir;
 var ctrl;
+var foodGroup;
+var enemyGroup;
+var playerGroup;
+var score;
+var scoreText;
 
 function preload () {
 	game.load.image('snakeHead', 'assets/snakeHead.png');
@@ -32,8 +38,21 @@ function create () {
 	cursors = game.input.keyboard.createCursorKeys();
 	// game action
 	game.time.events.loop(TICKTIME, action, this);
+	// groups
+	playerGroup = game.add.group();
+	playerGroup.z = 3;
+	foodGroup = game.add.group();
+	foodGroup.z = 1;
+	enemyGroup = game.add.group();
+	enemyGroup.z = 2;
+	// score
+	scoreText = game.add.text(20, 20, "SCORE: 0", {font: "30px Arial", fill: "#000000"});
 	// initialise members
 	init();
+	///
+	game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR).onDown.add(action);
+	game.input.keyboard.addKey(Phaser.Keyboard.ZERO).onDown.add(addEnemy);
+	game.input.keyboard.addKey(Phaser.Keyboard.ONE).onDown.add(addFood);
 }
 
 function update () {
@@ -55,10 +74,12 @@ function update () {
 function action () {
 	// add new food
 	if (Math.random() * 100 <= FOODCHANCE) {
-		grid.addRandomBot(new food());
+		addFood();
 	}
-	// move grid elements
-	grid.customUpdate(grid);
+	// add new enemy
+	if (Math.random() * 100 <= ENEMYCHANCE) {
+		addEnemy();
+	}
 	// next space
 	var newRow = snakeHead.row;
 	var newCol = snakeHead.col;
@@ -81,11 +102,49 @@ function action () {
 		return;
 	}
 	// test collisions
+	if (grid.hasSnake(newRow, newCol)) {
+		restart();
+		return;
+	}
+	// pre test
 	if (grid.getFood(newRow, newCol)) {
-		snakeHead.addTail();
+		playerGroup.add(snakeHead.addTail());
+		addScore(1);
+	}
+	if (grid.hasEnemy(newRow, newCol)) {
+		restart();
+		return;
+	}
+	// move grid elements
+	grid.customUpdate(grid);
+	// post test
+	if (grid.getFood(newRow, newCol)) {
+		playerGroup.add(snakeHead.addTail());
+		addScore(1);
+	}
+	if (grid.hasEnemy(newRow, newCol)) {
+		restart();
+		return;
 	}
 	// move
 	snakeHead.moveTo(newRow, newCol, grid);
+}
+
+function addFood () {
+	var newFood = new food();
+	foodGroup.add(newFood);
+	grid.addRandomBot(newFood);
+}
+
+function addEnemy () {
+	var newEnemy = new enemy();
+	enemyGroup.add(newEnemy);
+	grid.addRandomTop(newEnemy);
+}
+
+function addScore (amt) {
+	score += amt;
+	scoreText.setText("SCORE: " + score);
 }
 
 function init () {
@@ -94,9 +153,13 @@ function init () {
 	// snake
 	snakeHead = snake(true);
 	grid.add(0, 0, snakeHead);
-	// direction
+	playerGroup.add(snakeHead);
+	// movement
+	ctrl = DIRECTIONS.RIGHT;
 	dir = DIRECTIONS.RIGHT;
-	// grid.addRandomBot(new food());
+	// score
+	score = 0;
+	scoreText.text = "SCORE: " + score;
 }
 
 function restart () {

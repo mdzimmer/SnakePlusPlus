@@ -5,6 +5,7 @@ function initialiseGrid (size, rows, cols) {
 	grid.size = size;
 	grid.rows = rows;
 	grid.cols = cols;
+	grid.itNum = 0;
 	grid.add = function add (row, col, member) {
 		this.array[row][col].push(member);
 		member.width = member.height = this.size;
@@ -21,6 +22,10 @@ function initialiseGrid (size, rows, cols) {
 	grid.addRandomBot = function addRandomBot (member) {
 		var randomRow = Math.floor(Math.random() * rows);
 		this.add(randomRow, this.cols - 1, member);
+	};
+	grid.addRandomTop = function addRandomTop (member) {
+		var randomRow = Math.floor(Math.random() * rows);
+		this.add(randomRow, 0, member);
 	};
 	grid.remove = function remove (row, col, member) {
 		var element = this.array[row][col];
@@ -44,11 +49,13 @@ function initialiseGrid (size, rows, cols) {
 		return false;
 	};
 	grid.customUpdate = function customUpdate (_grid) {
+		this.itNum++;
 		for (var row = 0; row < this.rows; ++row) {
 			for (var col = 0; col < this.cols; ++col) {
 				var element = this.array[row][col];
 				for (var i = 0; i < element.length; ++i) {
-					if (element[i].hasOwnProperty('customUpdate')) {
+					if (element[i].hasOwnProperty('customUpdate') && (!element[i].hasOwnProperty('itNum') || element[i].itNum < this.itNum)) {
+						element[i].itNum = this.itNum;
 						element[i].customUpdate(_grid);
 					}
 				}
@@ -64,6 +71,24 @@ function initialiseGrid (size, rows, cols) {
 				}
 			}
 		}
+	};
+	grid.hasEnemy = function hasEnemy (row, col) {
+		var element = this.array[row][col];
+		for (var i = 0; i < element.length; ++i) {
+			if (element[i].name == 'enemy') {
+				return true;
+			}
+		}
+		return false;
+	};
+	grid.hasSnake = function hasSnake (row, col) {
+		var element = this.array[row][col];
+		for (var i = 0; i < element.length; ++i) {
+			if (element[i].name == 'snake') {
+				return true;
+			}
+		}
+		return false;
 	};
 	for (var i = 0; i < rows; ++i) {
 		var col = [];
