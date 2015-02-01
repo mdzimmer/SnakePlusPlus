@@ -1,3 +1,9 @@
+/*
+ * @author Matthew Zimmerman
+ * Defines the grid all actors in the game are contained in and
+ * updated through.
+ */
+
 'use strict';
 function initialiseGrid (size, rows, cols) {
 	var grid = {};
@@ -6,6 +12,7 @@ function initialiseGrid (size, rows, cols) {
 	grid.rows = rows;
 	grid.cols = cols;
 	grid.itNum = 0;
+	// adds a member to given cell
 	grid.add = function add (row, col, member) {
 		this.array[row][col].push(member);
 		member.width = member.height = this.size;
@@ -14,19 +21,23 @@ function initialiseGrid (size, rows, cols) {
 		member.row = row;
 		member.col = col;
 	};
+	// adds to a random cell
 	grid.addRandom = function addRandom (member) {
 		var randomRow = Math.floor(Math.random() * rows);
 		var randomCol = Math.floor(Math.random() * cols);
 		this.add(randomRow, randomCol, member);
 	};
+	// this one for bottom of screen
 	grid.addRandomBot = function addRandomBot (member) {
 		var randomRow = Math.floor(Math.random() * rows);
 		this.add(randomRow, this.cols - 1, member);
 	};
+	// top of screen
 	grid.addRandomTop = function addRandomTop (member) {
 		var randomRow = Math.floor(Math.random() * rows);
 		this.add(randomRow, 0, member);
 	};
+	// remove given member from given cell
 	grid.remove = function remove (row, col, member) {
 		var element = this.array[row][col];
 		for (var i = 0; i < element.length; ++i) {
@@ -35,8 +46,9 @@ function initialiseGrid (size, rows, cols) {
 				return;
 			}
 		}
-		throw new Error('remove() failed to find element');
+		// throw new Error('remove() failed to find element');
 	};
+	// if food is at cell, remove it and return it
 	grid.getFood = function getFood (row, col) {
 		var element = this.array[row][col];
 		for (var i = 0; i < element.length; ++i) {
@@ -48,6 +60,7 @@ function initialiseGrid (size, rows, cols) {
 		}
 		return false;
 	};
+	// calls customUpdate() of all members
 	grid.customUpdate = function customUpdate (_grid) {
 		this.itNum++;
 		for (var row = 0; row < this.rows; ++row) {
@@ -62,6 +75,7 @@ function initialiseGrid (size, rows, cols) {
 			}
 		}
 	};
+	// removes all members from grid
 	grid.clear = function clear () {
 		for (var row = 0; row < this.rows; ++row) {
 			for (var col = 0; col < this.cols; ++col) {
@@ -72,6 +86,7 @@ function initialiseGrid (size, rows, cols) {
 			}
 		}
 	};
+	// return if cell has an enemy
 	grid.hasEnemy = function hasEnemy (row, col) {
 		var element = this.array[row][col];
 		for (var i = 0; i < element.length; ++i) {
@@ -81,6 +96,7 @@ function initialiseGrid (size, rows, cols) {
 		}
 		return false;
 	};
+	// return if cell has a snake
 	grid.hasSnake = function hasSnake (row, col) {
 		var element = this.array[row][col];
 		for (var i = 0; i < element.length; ++i) {
